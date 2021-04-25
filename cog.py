@@ -148,7 +148,7 @@ Icon by ともろう#2374
             users.append(e.id)
             await ctx.send(e.mention + "さん")
         await ctx.send("が選ばれました！\n`/register`で曲の登録をお願いします！")
-        await ctx.send(content="全員登録した後、`/next`で開始します。", hidden=True)
+        await ctx.send(content="全員登録した後、`/next`で開始します。")
 
     @cog_slash(name="info", guild_ids=guild_ids, description="いろいろな情報を表示します。")
     async def _info(self, ctx):
@@ -322,11 +322,11 @@ VC中：{vc_count}人
                 tres = f"\n<@!{mk}>さん： {mv}"
 
                 if len(res + tres) > 2000:
-                    await ctx.send(res, hidden=True, allowed_mentions=discord.AllowedMentions.none())
+                    await ctx.send(res, allowed_mentions=discord.AllowedMentions.none())
                     res = ""
                 res += tres
 
-            await ctx.send(res, hidden=True, allowed_mentions=discord.AllowedMentions.none())
+            await ctx.send(res, allowed_mentions=discord.AllowedMentions.none())
 
         except discord.errors.NotFound:
             pass
@@ -374,7 +374,7 @@ VC中：{vc_count}人
         required=True
     )])
     async def _profile_show(self, ctx: SlashContext, user: discord.Member):
-        await ctx.defer()
+        await ctx.defer(hidden=True)
         await check_exists(user)
         m = await profile_collection.find_one({"uid": user.id})
         await ctx.send(f"**{user.mention}さんの情報**\n"
@@ -382,20 +382,20 @@ VC中：{vc_count}人
                        + f"サーバー参加日時：{(user.joined_at + datetime.timedelta(hours=9)).strftime('%Y/%m/%d %H:%M:%S')}\n"
                        + "自己紹介：\n"
                        + "> " + "\n> ".join(m["text"].splitlines()) + "\n" + "イチオシ曲：\n"
-                       + (m["music"] if isinstance(m["music"], str) else f'[{m["music"]["title"]}]({m["music"]["url"]}) - [{m["music"]["uploader"]["name"]}]({m["music"]["uploader"]["url"]})'), hidden=True)
+                       + (m["music"] if isinstance(m["music"], str) else f'[{m["music"]["title"]}]({m["music"]["url"]}) - [{m["music"]["uploader"]["name"]}]({m["music"]["uploader"]["url"]})'))
 
     @cog_subcommand(base="profile", name="text", guild_ids=guild_ids, description="プロフィールの自己紹介を登録します。",)
     async def _profile_text(self, ctx: SlashContext):
         global channel, shuffled_musics, index
         await ctx.defer(hidden=True)
-        await ctx.send("自己紹介をDMに送信して下さい。\n1分後に時間切れになります。", hidden=True)
+        await ctx.send("自己紹介をDMに送信して下さい。\n1分後に時間切れになります。")
         try:
             msg = await self.bot.wait_for("message", check=lambda m: m.author.id == ctx.author.id, timeout=60)
             await check_exists(ctx.author)
             await profile_collection.update_one({"uid": ctx.author.id}, {"$set": {"text": msg.content}})
-            await ctx.send("設定が完了しました。", hidden=True)
+            await ctx.send("設定が完了しました。")
         except asyncio.TimeoutError:
-            await ctx.send("タイムアウトしました。", hidden=True)
+            await ctx.send("タイムアウトしました。")
 
     @cog_subcommand(base="profile", name="music", guild_ids=guild_ids, description="プロフィールのイチオシ曲を登録します。", options=[manage_commands.create_option(
         name="URL",
@@ -414,14 +414,14 @@ VC中：{vc_count}人
         required=False
     )])
     async def _profile_music(self, ctx: SlashContext, url: str, name: str = None, author: str = None):
+        await ctx.defer(hidden=True)
         if not ("youtu.be" in url or "youtube.com" in url):
-            await ctx.defer(hidden=True)
-            return await ctx.send(content="無効なURLです。", hidden=True)
+            return await ctx.send(content="無効なURLです。")
         loop = asyncio.get_event_loop()
-        await ctx.send("情報を抽出中です。", hidden=True)
+        await ctx.send("情報を抽出中です。")
         data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=False))
         await profile_collection.update_one({"uid": ctx.author.id}, {"$set": {"music": {"url": f"https://youtu.be/{data['id']}", "title": (name or data["title"]), "uploader": {"name": (author or data["uploader"]), "url": data["uploader_url"]}}}})
-        await ctx.send("登録が完了しました。", hidden=True)
+        await ctx.send("登録が完了しました。")
 
     @tasks.loop(hours=1)
     async def log_vc(self):
@@ -459,8 +459,8 @@ VC中：{vc_count}人
         l.sort(key=lambda d: datetime.datetime.strptime(d["datetime"], "%y/%m/%d %H:%M:%S"))
         for d in l[:11]:
             m = datetime.datetime.strptime(d["datetime"], "%y/%m/%d %H:%M:%S")  # - datetime.timedelta(hours=9)
-            res += f'{m.strftime("%Y/%m/%d %H:%M:%S")}: {d["count"]}人\n'
-        await ctx.send(res, hidden=True)
+            res += f'{m.strftime("%Y/%m/%d %H:%M")}: {d["count"]}人\n'
+        await ctx.send(res)
 
     @commands.command("reload")
     @commands.is_owner()
