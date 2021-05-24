@@ -2,7 +2,6 @@ import os
 
 import discord
 import motor.motor_asyncio
-# import pymongo
 from discord.ext import commands
 from discord_slash import SlashCommand
 from dotenv import load_dotenv
