@@ -23,10 +23,9 @@ bot.load_extension("jishaku")
 async def on_ready():
     print("I'm ready!")
     await bot.change_presence(activity=discord.Game(
-        name="Created by No Name.#1225 | Icon by ともろう#2374"
+        name="/help"
     ))
 
 
 bot.load_extension("cog")
-bot.load_extension("dpy_peper")
 bot.run(os.environ.get("token"))
